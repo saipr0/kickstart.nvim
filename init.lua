@@ -56,7 +56,7 @@ vim.keymap.set('n', 'th', function()
   vim.api.nvim_win_set_height(0, 10)
   vim.cmd.startinsert()
 end, { desc = 'Open [T]erminal [H]orizontal' })
-vim.keymap.set('n', 'tp', function()
+vim.keymap.set({ 'n', 't' }, '<leader>tp', function()
   vim.cmd 'Floaterm'
   vim.cmd 'startinsert'
 end, { desc = 'Open [T]erminal [P]opup' })
@@ -739,6 +739,13 @@ require('lazy').setup({
           permanent_delete = false,
         },
       }
+      -- Fix background color
+      vim.api.nvim_set_hl(0, 'MiniFilesNormal', {
+        bg = vim.api.nvim_get_hl(0, { name = 'Normal', link = false }).bg or 'NONE',
+      })
+      vim.api.nvim_set_hl(0, 'MiniFilesBorder', {
+        bg = vim.api.nvim_get_hl(0, { name = 'Normal', link = false }).bg or 'NONE',
+      })
 
       vim.keymap.set('n', '<leader>e', ':lua MiniFiles.open()<CR>', { noremap = true, silent = true, desc = 'MiniFiles' })
       vim.keymap.set('n', '<Esc>', ':lua MiniFiles.close()<CR>', { noremap = true, silent = true, desc = 'Close MiniFiles' })

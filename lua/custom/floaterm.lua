@@ -9,11 +9,9 @@ local function create_floating_window(opts)
   opts = opts or {}
   local width = opts.width or math.floor(vim.o.columns * 0.8)
   local height = opts.height or math.floor(vim.o.lines * 0.8)
-
   -- Calculate the position to center the window
   local col = math.floor((vim.o.columns - width) / 2)
   local row = math.floor((vim.o.lines - height) / 2)
-
   -- Create a buffer
   local buf = nil
   if vim.api.nvim_buf_is_valid(opts.buf) then
@@ -21,7 +19,6 @@ local function create_floating_window(opts)
   else
     buf = vim.api.nvim_create_buf(false, true) -- No file, scratch buffer
   end
-
   -- Define window configuration
   local win_config = {
     relative = 'editor',
@@ -30,11 +27,14 @@ local function create_floating_window(opts)
     col = col,
     row = row,
     style = 'minimal', -- No borders or extra UI elements
-    border = 'solid',
+    border = 'rounded',
   }
-
   -- Create the floating window
   local win = vim.api.nvim_open_win(buf, true, win_config)
+
+  -- Fix background color to match your colorscheme exactly
+  -- This forces the floating window to use the same background as your main editor
+  vim.api.nvim_set_option_value('winhighlight', 'Normal:Normal,NormalFloat:Normal,FloatBorder:Normal', { win = win })
 
   return { buf = buf, win = win }
 end
@@ -53,3 +53,18 @@ end
 -- Example usage:
 -- Create a floating window with default dimensions
 vim.api.nvim_create_user_command('Floaterm', toggle_terminal, {})
+
+-- Force floating windows to match editor background exactly
+vim.api.nvim_create_autocmd('ColorScheme', {
+  pattern = '*',
+  callback = function()
+    vim.api.nvim_set_hl(0, 'NormalFloat', {
+      bg = vim.api.nvim_get_hl(0, { name = 'Normal', link = false }).bg or 'NONE',
+    })
+  end,
+})
+
+-- Set it immediately for current colorscheme
+vim.api.nvim_set_hl(0, 'NormalFloat', {
+  bg = vim.api.nvim_get_hl(0, { name = 'Normal', link = false }).bg or 'NONE',
+})
