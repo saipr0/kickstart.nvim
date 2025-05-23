@@ -29,6 +29,13 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
+if vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1 then
+  if vim.fn.executable 'pwsh' == 1 then
+    vim.o.shell = 'pwsh.exe'
+  else
+    vim.o.shell = 'cmd.exe'
+  end
+end
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -42,20 +49,20 @@ vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower win
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 vim.keymap.set('n', '<leader>x', '<cmd>bd<CR>', { desc = 'Delete buffer' })
 vim.keymap.set({ 'n', 't' }, '<leader>xx', '<cmd>bd!<CR>', { desc = 'Delete buffer with no changes' })
-vim.keymap.set('n', 'tv', function()
+vim.keymap.set('n', 'ts', function()
   vim.cmd.vnew()
   vim.cmd.term()
   vim.cmd.wincmd 'j'
-  vim.api.nvim_win_set_width(0, 40)
+  vim.api.nvim_win_set_width(0, 50)
   vim.cmd.startinsert()
-end, { desc = 'Open [T]erminal [V]ertical' })
-vim.keymap.set('n', 'th', function()
+end, { desc = 'Open [T]erminal [S]ide' })
+vim.keymap.set('n', 'tb', function()
   vim.cmd.new()
   vim.cmd.term()
   vim.cmd.wincmd 'j'
   vim.api.nvim_win_set_height(0, 10)
   vim.cmd.startinsert()
-end, { desc = 'Open [T]erminal [H]orizontal' })
+end, { desc = 'Open [T]erminal [B]ottom' })
 vim.keymap.set({ 'n', 't' }, '<leader>tp', function()
   vim.cmd 'Floaterm'
   vim.cmd 'startinsert'
