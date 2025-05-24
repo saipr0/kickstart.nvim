@@ -78,6 +78,22 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+vim.api.nvim_create_autocmd({ 'UIEnter', 'ColorScheme' }, {
+  callback = function()
+    local normal = vim.api.nvim_get_hl(0, { name = 'Normal' })
+    if not normal.bg then
+      return
+    end
+    io.write(string.format('\027]11;#%06x\027\\', normal.bg))
+  end,
+})
+
+vim.api.nvim_create_autocmd('UILeave', {
+  callback = function()
+    io.write '\027]111\027\\'
+  end,
+})
+
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
@@ -215,11 +231,13 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            n = {
+              ['<c-d>'] = require('telescope.actions').delete_buffer,
+            },
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
