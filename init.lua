@@ -1,5 +1,6 @@
 -- [[ Custom Lua ]]
 require 'custom.floaterm'
+require 'custom.floatgit'
 
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -45,7 +46,7 @@ end
 vim.keymap.set('n', ';', ':')
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+-- vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -70,6 +71,16 @@ vim.keymap.set({ 'n', 't' }, '<leader>tp', function()
   vim.cmd 'Floaterm'
   vim.cmd 'startinsert'
 end, { desc = 'Open [T]erminal [P]opup' })
+vim.keymap.set({ 'n', 't' }, '<leader>g', function()
+  vim.cmd 'Floatgit'
+  vim.cmd 'startinsert'
+end, { desc = 'Open Lazy[G]it' })
+vim.keymap.set('n', '<leader>cc', ':CodeCompanionActions<CR>', { desc = 'Open CodeCompanion Actions' })
+
+vim.keymap.set('n', 'c-k', ':wincmd k<CR>', { desc = 'Move to the window above' })
+vim.keymap.set('n', 'c-j', ':wincmd j<CR>', { desc = 'Move to the window below' })
+vim.keymap.set('n', 'c-h', ':wincmd h<CR>', { desc = 'Move to the window on the left' })
+vim.keymap.set('n', 'c-l', ':wincmd l<CR>', { desc = 'Move to the window on the right' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -265,7 +276,6 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>c', builtin.colorscheme, { desc = '[C]olorscheme' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -711,25 +721,25 @@ require('lazy').setup({
     },
   },
 
-  {
-    'loctvl842/monokai-pro.nvim',
-    priority = 1000,
-    config = function()
-      require('monokai-pro').setup {
-        transparent_background = true,
-        terminal_colors = true,
-        filter = 'octagon',
-        background_clear = {
-          'toggleterm',
-          'telescope',
-          'renamer',
-          'notify',
-        },
-      }
-
-      vim.cmd [[colorscheme monokai-pro]]
-    end,
-  },
+  -- {
+  --   'loctvl842/monokai-pro.nvim',
+  --   priority = 1000,
+  --   config = function()
+  --     require('monokai-pro').setup {
+  --       transparent_background = true,
+  --       terminal_colors = true,
+  --       filter = 'octagon',
+  --       background_clear = {
+  --         'toggleterm',
+  --         'telescope',
+  --         'renamer',
+  --         'notify',
+  --       },
+  --     }
+  --
+  --     vim.cmd [[colorscheme monokai-pro]]
+  --   end,
+  -- },
   -- {
   --   'rebelot/kanagawa.nvim',
   --   priority = 1000,
@@ -752,26 +762,21 @@ require('lazy').setup({
   --     vim.cmd.colorscheme 'material'
   --   end,
   -- },
-  -- { -- You can easily change to a different colorscheme.
-  --   -- 'rebelot/kanagawa.nvim',
-  --   -- 'zenbones-theme/zenbones.nvim',
-  --   -- 'catppuccin/nvim',
-  --   'marko-cerovac/material.nvim',
-  --   -- 'olimorris/onedarkpro.nvim',
-  --   -- 'folke/tokyonight.nvim',
-  --   -- 'vague2k/vague.nvim',
-  --   dependencies = 'rktjmp/lush.nvim',
-  --   priority = 1000,
-  --   config = function()
-  --     -- vim.cmd.colorscheme 'tokyobones'
-  --     -- vim.cmd.colorscheme 'vague'
-  --     -- vim.cmd.colorscheme 'catppuccin-mocha'
-  --     vim.g.material_style = 'palenight'
-  --     vim.cmd.colorscheme 'material'
-  --     -- vim.cmd.colorscheme 'onedark_vivid'
-  --     -- vim.cmd.colorscheme 'tokyonight-storm'
-  --   end,
-  -- },
+  { -- You can easily change to a different colorscheme.
+    -- 'rebelot/kanagawa.nvim',
+    -- 'zenbones-theme/zenbones.nvim',
+    -- 'catppuccin/nvim',
+    -- 'marko-cerovac/material.nvim',
+    -- 'olimorris/onedarkpro.nvim',
+    'folke/tokyonight.nvim',
+    -- 'vague2k/vague.nvim',
+    -- dependencies = 'rktjmp/lush.nvim',
+    priority = 1000,
+    config = function()
+      vim.cmd.colorscheme 'tokyonight'
+      -- vim.cmd.colorscheme 'vague'
+    end,
+  },
 
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
@@ -815,7 +820,11 @@ require('lazy').setup({
         bg = vim.api.nvim_get_hl(0, { name = 'Normal', link = false }).bg or 'NONE',
       })
 
-      vim.keymap.set('n', '<leader>e', ':lua MiniFiles.open()<CR>', { noremap = true, silent = true, desc = 'MiniFiles' })
+      -- vim.keymap.set('n', '<leader>e', ':lua MiniFiles.open()<CR>', { noremap = true, silent = true, desc = 'MiniFiles' })
+      vim.keymap.set('n', '<leader>e', function()
+        MiniFiles.open(vim.api.nvim_buf_get_name(0))
+      end, { noremap = true, silent = true, desc = 'MiniFiles' })
+
       vim.keymap.set('n', '<Esc>', ':lua MiniFiles.close()<CR>', { noremap = true, silent = true, desc = 'Close MiniFiles' })
 
       -- Simple and easy statusline.
