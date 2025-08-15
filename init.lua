@@ -44,6 +44,9 @@ if vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1 then
   end
 end
 
+-- copilot
+vim.g.copilot_enabled = 0
+
 -- [[ Basic Keymaps ]]
 
 -- Basic

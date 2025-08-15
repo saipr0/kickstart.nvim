@@ -30,6 +30,13 @@ return { -- Autoformat
     end,
     formatters_by_ft = {
       lua = { 'stylua' },
+      ruby = { 'rubocop' },
+      eruby = { 'htmlbeautifier' },
+      markdown = { 'markdownlint' },
+      yaml = { 'yamlfix' },
+      javascript = { 'prettierd', 'prettier' },
+      typescript = { 'prettierd', 'prettier' },
+      json = { 'jq' },
       -- eruby = { 'erb_format' },
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
