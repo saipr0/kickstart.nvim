@@ -11,12 +11,20 @@ return {
   },
   lazy = false,
   keys = {
-    { '\\e', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
-    { '\\<leader>', ':Neotree buffers<CR>', desc = 'NeoTree buffers', silent = true },
+    { '\\<leader>', ':Neotree toggle reveal position=float<CR>', desc = 'NeoTree reveal', silent = true },
+    { '\\e', ':Neotree toggle buffers position=right<CR>', desc = 'Toggle NeoTree buffers', silent = true },
   },
-  opts = {
-    window = {
-      position = 'float',
-    },
-  },
+  config = function()
+    require('neo-tree').setup {
+      close_if_last_window = true, -- Close Neo-tree if it's the last window left
+    }
+
+    -- vim.api.nvim_create_autocmd('VimEnter', {
+    --   callback = function()
+    --     if vim.fn.argc() == 0 then
+    --       vim.cmd 'Neotree show buffers position=right'
+    --     end
+    --   end,
+    -- })
+  end,
 }

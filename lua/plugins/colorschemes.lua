@@ -1,5 +1,10 @@
 return {
   {
+    'vague2k/vague.nvim',
+    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    priority = 1000, -- make sure to load this before all the other plugins
+  },
+  {
     'loctvl842/monokai-pro.nvim',
     priority = 1000,
     config = function()
@@ -9,7 +14,7 @@ return {
         filter = 'octagon',
         background_clear = {
           'toggleterm',
-          'telescope',
+          'fzf',
           'renamer',
           'notify',
         },

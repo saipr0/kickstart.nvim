@@ -19,12 +19,23 @@ vim.o.undofile = true
 vim.o.updatetime = 250
 vim.o.timeoutlen = 300
 vim.o.confirm = true
+-- Next buffer
+vim.keymap.set('n', '<Tab>', function()
+  vim.api.nvim_command 'bnext'
+end, { desc = 'Next buffer' })
+
+-- Previous buffer
+vim.keymap.set('n', '<S-Tab>', function()
+  vim.api.nvim_command 'bprevious'
+end, { desc = 'Previous buffer' })
 
 -- Search
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
 -- Visual
+vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
+vim.opt.fillchars = { eob = ' ' }
 vim.o.breakindent = true
 vim.opt.signcolumn = 'yes'
 vim.o.splitright = true
@@ -53,6 +64,11 @@ vim.g.copilot_enabled = 0
 vim.keymap.set('n', ';', ':')
 vim.keymap.set('t', '<C-\\>', [[<C-\><C-n>]], { noremap = true })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', 'Q', '"_', { noremap = true, silent = true })
+vim.keymap.set('x', 'p', function()
+  return 'pgv"' .. vim.v.register .. 'y'
+end, { remap = false, expr = true })
+vim.keymap.set('n', '<C-a>', 'ggVG', { desc = 'Select all' })
 
 -- Search
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')

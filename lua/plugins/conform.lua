@@ -30,7 +30,6 @@ return { -- Autoformat
     end,
     formatters_by_ft = {
       lua = { 'stylua' },
-      ruby = { 'rubocop' },
       eruby = { 'htmlbeautifier' },
       markdown = { 'markdownlint' },
       yaml = { 'yamlfix' },

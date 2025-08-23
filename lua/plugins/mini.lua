@@ -99,6 +99,12 @@ return { -- Collection of various small independent plugins/modulesmini
           local location = MiniStatusline.section_location { trunc_width = 75 }
           local search = MiniStatusline.section_searchcount { trunc_width = 75 }
 
+          local function get_modified_indicator()
+            if vim.bo.modified then
+              return vim.g.have_nerd_font and ' ●' or ' [+]'
+            end
+            return ''
+          end
           -- Custom function to get just the file icon
           local function get_file_icon()
             local has_devicons, devicons = pcall(require, 'nvim-web-devicons')
@@ -126,7 +132,7 @@ return { -- Collection of various small independent plugins/modulesmini
             { hl = mode_hl, strings = { mode } },
             '%<', -- Mark general truncate point
             { hl = 'MiniStatuslineDevinfo', strings = { get_file_path() } },
-            { hl = 'MiniStatuslineFilename', strings = { get_file_icon() .. get_filename() } },
+            { hl = 'MiniStatuslineFilename', strings = { get_file_icon() .. get_filename() .. get_modified_indicator() } },
             '%=', -- End left alignment
             { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
             { hl = mode_hl, strings = { search, location } },
