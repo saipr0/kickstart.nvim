@@ -1,4 +1,12 @@
 return {
+  { 'mellow-theme/mellow.nvim', priority = 1000 },
+  { 'catppuccin/nvim', name = 'catppuccin', priority = 1000 },
+  {
+    'zenbones-theme/zenbones.nvim',
+    dependencies = 'rktjmp/lush.nvim',
+    lazy = false,
+    priority = 1000,
+  },
   {
     'vague2k/vague.nvim',
     lazy = false, -- make sure we load this during startup if it is your main colorscheme

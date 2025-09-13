@@ -21,12 +21,12 @@ vim.o.timeoutlen = 300
 vim.o.confirm = true
 -- Next buffer
 vim.keymap.set('n', '<Tab>', function()
-  vim.api.nvim_command 'bnext'
+  vim.api.nvim_command 'tabnext'
 end, { desc = 'Next buffer' })
 
 -- Previous buffer
 vim.keymap.set('n', '<S-Tab>', function()
-  vim.api.nvim_command 'bprevious'
+  vim.api.nvim_command 'tabprevious'
 end, { desc = 'Previous buffer' })
 
 -- Search
@@ -45,6 +45,24 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
+
+vim.o.tabline = '%!v:lua.MyTabline()'
+function _G.MyTabline()
+  local s = ''
+  for i = 1, vim.fn.tabpagenr '$' do
+    local bufnr = vim.fn.tabpagebuflist(i)[vim.fn.tabpagewinnr(i)]
+    local filename = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t')
+    if filename == '' then
+      filename = '[No Name]'
+    end
+    if i == vim.fn.tabpagenr() then
+      s = s .. '%#TabLineSel# ' .. filename .. ' %#TabLine#'
+    else
+      s = s .. '%#TabLine# ' .. filename .. ' %#TabLine#'
+    end
+  end
+  return s
+end
 
 -- Windows
 if vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1 then
