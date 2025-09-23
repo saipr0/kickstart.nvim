@@ -34,7 +34,7 @@ vim.o.ignorecase = true
 vim.o.smartcase = true
 
 -- Visual
-vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
+-- vim.o.winbar = "%{%v:lua.require'nvim-navic'.get_location()%}"
 vim.opt.fillchars = { eob = ' ' }
 vim.o.breakindent = true
 vim.opt.signcolumn = 'yes'
