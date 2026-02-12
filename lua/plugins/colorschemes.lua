@@ -85,9 +85,51 @@ return {
       })
       vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
       vim.api.nvim_set_hl(0, 'NormalNC', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'FloatBorder', { bg = 'none' })
       vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })
       vim.api.nvim_set_hl(0, 'LineNr', { bg = 'none', fg = '#6b7280' })
       vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'StatusLine', { bg = 'none' })
+      vim.api.nvim_set_hl(0, 'StatusLineNC', { bg = 'none' })
+      
+      -- Fix split line - remove yellow background
+      vim.api.nvim_set_hl(0, 'VertSplit', { bg = 'none', fg = '#666666' })
+      vim.api.nvim_set_hl(0, 'WinSeparator', { bg = 'none', fg = '#666666' })
+      
+      -- Clear all fzf-lua backgrounds
+      local fzf_groups = {
+        'FzfLuaNormal', 'FzfLuaBorder', 'FzfLuaPreviewNormal', 'FzfLuaPreviewBorder',
+        'FzfLuaTitle', 'FzfLuaCursor', 'FzfLuaCursorLine', 'FzfLuaSearch',
+        'FzfLuaScrollBorderEmpty', 'FzfLuaScrollBorderFull', 'FzfLuaFzfBorder',
+        'FzfLuaFzfGutter', 'FzfLuaHeaderBind', 'FzfLuaHeaderText', 'FzfLuaPathColNr',
+        'FzfLuaPathLineNr', 'FzfLuaBufName', 'FzfLuaBufNr', 'FzfLuaBufFlagCur',
+        'FzfLuaBufFlagAlt', 'FzfLuaTabTitle', 'FzfLuaTabMarker', 'FzfLuaLiveSym',
+      }
+      for _, group in ipairs(fzf_groups) do
+        vim.api.nvim_set_hl(0, group, { bg = 'none' })
+      end
+
+      -- Clear fidget.nvim backgrounds
+      local fidget_groups = {
+        'FidgetTask', 'FidgetTitle', 'FidgetNormal',
+        'Fidget', 'FidgetProgress', 'FidgetProgressDone', 'FidgetProgressIcon',
+      }
+      for _, group in ipairs(fidget_groups) do
+        vim.api.nvim_set_hl(0, group, { bg = 'none' })
+      end
+      
+      -- Custom color for constants
+      -- Change the color to whatever you prefer (examples below)
+      vim.api.nvim_set_hl(0, 'Constant', { fg = '#ff79c6' })  -- Pink
+      vim.api.nvim_set_hl(0, '@constant', { fg = '#ff79c6' }) -- Pink (Treesitter)
+      -- Other color options:
+      -- '#bd93f9' - Purple
+      -- '#8be9fd' - Cyan
+      -- '#50fa7b' - Green
+      -- '#f1fa8c' - Yellow
+      -- '#ff5555' - Red
+      -- '#ffb86c' - Orange
     end,
   },
 }

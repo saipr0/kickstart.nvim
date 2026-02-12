@@ -19,15 +19,19 @@ vim.o.undofile = true
 vim.o.updatetime = 250
 vim.o.timeoutlen = 300
 vim.o.confirm = true
--- Next buffer
+-- Next tab
 vim.keymap.set('n', '<Tab>', function()
-  vim.api.nvim_command 'tabnext'
-end, { desc = 'Next buffer' })
+  if vim.fn.tabpagenr('$') > 1 then
+    vim.api.nvim_command 'tabnext'
+  end
+end, { desc = 'Next tab' })
 
--- Previous buffer
+-- Previous tab
 vim.keymap.set('n', '<S-Tab>', function()
-  vim.api.nvim_command 'tabprevious'
-end, { desc = 'Previous buffer' })
+  if vim.fn.tabpagenr('$') > 1 then
+    vim.api.nvim_command 'tabprevious'
+  end
+end, { desc = 'Previous tab' })
 
 -- Search
 vim.o.ignorecase = true
@@ -45,24 +49,10 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
+vim.opt.cmdheight = 0  -- Hide command line by default
+vim.opt.shortmess:append('F')  -- Don't show file info messages
 
-vim.o.tabline = '%!v:lua.MyTabline()'
-function _G.MyTabline()
-  local s = ''
-  for i = 1, vim.fn.tabpagenr '$' do
-    local bufnr = vim.fn.tabpagebuflist(i)[vim.fn.tabpagewinnr(i)]
-    local filename = vim.fn.fnamemodify(vim.fn.bufname(bufnr), ':t')
-    if filename == '' then
-      filename = '[No Name]'
-    end
-    if i == vim.fn.tabpagenr() then
-      s = s .. '%#TabLineSel# ' .. filename .. ' %#TabLine#'
-    else
-      s = s .. '%#TabLine# ' .. filename .. ' %#TabLine#'
-    end
-  end
-  return s
-end
+-- Tabline is now handled by mini.tabline
 
 -- Windows
 if vim.fn.has 'win32' == 1 or vim.fn.has 'win64' == 1 then
@@ -82,11 +72,22 @@ vim.g.copilot_enabled = 0
 vim.keymap.set('n', ';', ':')
 vim.keymap.set('t', '<C-\\>', [[<C-\><C-n>]], { noremap = true })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+
+-- Add diagnostic navigation keymaps to prevent conflicts
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Goto Prev Diagnostic' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Goto Next Diagnostic' })
 vim.keymap.set('n', 'Q', '"_', { noremap = true, silent = true })
 vim.keymap.set('x', 'p', function()
   return 'pgv"' .. vim.v.register .. 'y'
 end, { remap = false, expr = true })
 vim.keymap.set('n', '<C-a>', 'ggVG', { desc = 'Select all' })
+
+-- Buffer management (like MiniMax)
+vim.keymap.set('n', '<leader>bn', '<cmd>enew<CR>', { desc = '[B]uffer [N]ew' })
+vim.keymap.set('n', '<leader>bd', function() require('mini.bufremove').delete() end, { desc = '[B]uffer [D]elete' })
+vim.keymap.set('n', '<leader>bD', function() require('mini.bufremove').delete(0, true) end, { desc = '[B]uffer [D]elete!' })
+vim.keymap.set('n', '<leader>bw', function() require('mini.bufremove').wipeout() end, { desc = '[B]uffer [W]ipeout' })
+vim.keymap.set('n', '<leader>bW', function() require('mini.bufremove').wipeout(0, true) end, { desc = '[B]uffer [W]ipeout!' })
 
 -- Search
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
@@ -103,7 +104,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
-    vim.highlight.on_yank()
+    vim.hl.on_yank()
   end,
 })
 

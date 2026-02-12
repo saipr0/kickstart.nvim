@@ -10,7 +10,17 @@ return {
     'WhoIsSethDaniel/mason-tool-installer.nvim',
 
     -- Useful status updates for LSP.
-    { 'j-hui/fidget.nvim', opts = {} },
+    {
+      'j-hui/fidget.nvim',
+      opts = {
+        notification = {
+          window = {
+            winblend = 0, -- Transparency (0 = opaque, 100 = fully transparent)
+            normal_hl = 'Normal', -- Use Normal highlight group (which has bg=none)
+          },
+        },
+      },
+    },
 
     -- Allows extra capabilities provided by blink.cmp
     'saghen/blink.cmp',
@@ -66,34 +76,54 @@ return {
         -- or a suggestion from your LSP for this to activate.
         map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
 
-        -- Find references for the word under your cursor.
-        map('grr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+        -- Get fzf-lua safely
+        local fzf_ok, fzf = pcall(require, 'fzf-lua')
+        if fzf_ok then
+          -- Helper to get monorepo root for path formatting
+          local function get_monorepo_root()
+            local cwd = vim.fn.getcwd()
+            if cwd:match('/tagntrac%-infra/fulcrum') then
+              return cwd:match('(.*/tagntrac%-infra)')
+            end
+            return cwd
+          end
 
-        -- Jump to the implementation of the word under your cursor.
-        --  Useful when your language has ways of declaring types without an actual implementation.
-        map('gri', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+          -- Find references for the word under your cursor.
+          map('grr', function() fzf.lsp_references({ cwd = get_monorepo_root() }) end, '[G]oto [R]eferences')
 
-        -- Jump to the definition of the word under your cursor.
-        --  This is where a variable was first declared, or where a function is defined, etc.
-        --  To jump back, press <C-t>.
-        map('grd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+          -- Jump to the implementation of the word under your cursor.
+          --  Useful when your language has ways of declaring types without an actual implementation.
+          map('gri', function() fzf.lsp_implementations({ cwd = get_monorepo_root() }) end, '[G]oto [I]mplementation')
+
+          -- Jump to the definition of the word under your cursor.
+          --  This is where a variable was first declared, or where a function is defined, etc.
+          --  To jump back, press <C-t>.
+          map('grd', function() fzf.lsp_definitions({ cwd = get_monorepo_root() }) end, '[G]oto [D]efinition')
+
+          -- Fuzzy find all the symbols in your current document.
+          --  Symbols are things like variables, functions, types, etc.
+          map('gO', fzf.lsp_document_symbols, 'Open Document Symbols')
+
+          -- Fuzzy find all the symbols in your current workspace.
+          --  Similar to document symbols, except searches over your entire project.
+          map('gW', fzf.lsp_workspace_symbols, 'Open Workspace Symbols')
+
+          -- Jump to the type of the word under your cursor.
+          --  Useful when you're not sure what type a variable is and you want to see
+          --  the definition of its *type*, not where it was *defined*.
+          map('grt', fzf.lsp_typedefs, '[G]oto [T]ype Definition')
+        else
+          -- Fallback to built-in LSP functions if fzf-lua is not available
+          map('grr', vim.lsp.buf.references, '[G]oto [R]eferences')
+          map('gri', vim.lsp.buf.implementation, '[G]oto [I]mplementation')  
+          map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
+          map('grt', vim.lsp.buf.type_definition, '[G]oto [T]ype Definition')
+          -- Note: Document/workspace symbols don't have simple built-in alternatives
+        end
 
         -- WARN: This is not Goto Definition, this is Goto Declaration.
         --  For example, in C this would take you to the header.
         map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-
-        -- Fuzzy find all the symbols in your current document.
-        --  Symbols are things like variables, functions, types, etc.
-        map('gO', require('telescope.builtin').lsp_document_symbols, 'Open Document Symbols')
-
-        -- Fuzzy find all the symbols in your current workspace.
-        --  Similar to document symbols, except searches over your entire project.
-        map('gW', require('telescope.builtin').lsp_workspace_symbols, 'Open Workspace Symbols')
-
-        -- Jump to the type of the word under your cursor.
-        --  Useful when you're not sure what type a variable is and you want to see
-        --  the definition of its *type*, not where it was *defined*.
-        map('grt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
 
         -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
         ---@param client vim.lsp.Client
@@ -108,37 +138,11 @@ return {
           end
         end
 
-        -- The following two autocommands are used to highlight references of the
-        -- word under your cursor when your cursor rests there for a little while.
-        --    See `:help CursorHold` for information about when this is executed
-        --
-        -- When you move your cursor, the highlights will be cleared (the second autocommand).
         local client = vim.lsp.get_client_by_id(event.data.client_id)
-        -- Attach navic to LSP client
-        if client and client.server_capabilities.documentSymbolProvider then
-          require('nvim-navic').attach(client, event.buf)
-        end
-        if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
-          local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
-          vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-            buffer = event.buf,
-            group = highlight_augroup,
-            callback = vim.lsp.buf.document_highlight,
-          })
-
-          vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-            buffer = event.buf,
-            group = highlight_augroup,
-            callback = vim.lsp.buf.clear_references,
-          })
-
-          vim.api.nvim_create_autocmd('LspDetach', {
-            group = vim.api.nvim_create_augroup('kickstart-lsp-detach', { clear = true }),
-            callback = function(event2)
-              vim.lsp.buf.clear_references()
-              vim.api.nvim_clear_autocmds { group = 'kickstart-lsp-highlight', buffer = event2.buf }
-            end,
-          })
+        
+        -- Disable semantic tokens to prevent color shifts
+        if client then
+          client.server_capabilities.semanticTokensProvider = nil
         end
 
         -- The following code creates a keymap to toggle inlay hints in your
@@ -187,6 +191,9 @@ return {
     --  When you add blink.cmp, luasnip, etc. Neovim now has *more* capabilities.
     --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
     local capabilities = require('blink.cmp').get_lsp_capabilities()
+    
+    -- Disable semantic tokens to prevent color shifts
+    capabilities.semanticTokensProvider = nil
 
     -- Enable the following language servers
     --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -200,11 +207,35 @@ return {
     local servers = {
       -- clangd = {},
       -- gopls = {},
-      pyright = {},
-      ruff = {},
-      rust_analyzer = {},
+      -- pyright = {},
+      -- ruff = {},
+      -- rust_analyzer = {},
       ts_ls = {},
-      ruby_lsp = {},
+      ruby_lsp = {
+        -- Always use fulcrum as root for the monorepo
+        root_dir = function(fname)
+          -- Check if we're in the tagntrac-infra monorepo
+          if fname:find('/tagntrac%-infra/', 1, true) then
+            -- Extract the monorepo root path
+            local monorepo_root = fname:match('(.*/tagntrac%-infra)')
+            if monorepo_root then
+              local fulcrum_path = monorepo_root .. '/fulcrum'
+              -- Check if fulcrum directory exists
+              local stat = vim.loop.fs_stat(fulcrum_path)
+              if stat and stat.type == 'directory' then
+                return fulcrum_path
+              end
+            end
+          end
+          
+          -- Fallback to standard Rails root detection
+          local util = require 'lspconfig.util'
+          return util.root_pattern('Gemfile', '.git')(fname)
+        end,
+        init_options = {
+          experimentalFeaturesEnabled = true,
+        },
+      },
       emmet_ls = {},
       -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
       --

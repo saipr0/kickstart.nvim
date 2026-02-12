@@ -15,10 +15,11 @@ return { -- Collection of various small independent plugins/modulesmini
     -- - sd'   - [S]urround [D]elete [']quotes
     -- - sr)'  - [S]urround [R]eplace [)] [']
     require('mini.surround').setup()
-    require('mini.diff').setup()
+    -- Disable mini.diff entirely to avoid keymap conflicts
+    -- require('mini.diff').setup()
 
     require('mini.pairs').setup {
-      modes = { insert = true, command = true, terminal = false },
+      modes = { insert = true, command = false, terminal = false }, -- Disable command mode to avoid bracket conflicts
       -- skip autopair when next character is one of these
       skip_next = [=[[%w%%%'%[%"%.%`%$]]=],
       -- skip autopair when the cursor is inside these treesitter nodes
@@ -88,16 +89,13 @@ return { -- Collection of various small independent plugins/modulesmini
     local statusline = require 'mini.statusline'
     statusline.setup {
       use_icons = vim.g.have_nerd_font,
+      set_vim_settings = false,
       content = {
         active = function()
           local mode, mode_hl = MiniStatusline.section_mode { trunc_width = 120 }
           local git = MiniStatusline.section_git { trunc_width = 40 }
-          local diff = MiniStatusline.section_diff { trunc_width = 75 }
           local diagnostics = MiniStatusline.section_diagnostics { trunc_width = 75 }
-          local lsp = MiniStatusline.section_lsp { trunc_width = 75 }
-          local filename = MiniStatusline.section_filename { trunc_width = 140 }
           local location = MiniStatusline.section_location { trunc_width = 75 }
-          local search = MiniStatusline.section_searchcount { trunc_width = 75 }
 
           local function get_modified_indicator()
             if vim.bo.modified then
@@ -105,6 +103,7 @@ return { -- Collection of various small independent plugins/modulesmini
             end
             return ''
           end
+
           -- Custom function to get just the file icon
           local function get_file_icon()
             local has_devicons, devicons = pcall(require, 'nvim-web-devicons')
@@ -117,29 +116,22 @@ return { -- Collection of various small independent plugins/modulesmini
             return ''
           end
 
-          -- Custom function to get file path
-          local function get_file_path()
-            local path = vim.fn.expand '%:h'
-            return path ~= '.' and path or ''
-          end
-
           -- Custom function to get just filename
           local function get_filename()
             return vim.fn.expand '%:t'
           end
 
           return MiniStatusline.combine_groups {
-            { hl = mode_hl, strings = { mode } },
-            '%<', -- Mark general truncate point
-            { hl = 'MiniStatuslineDevinfo', strings = { get_file_path() } },
-            { hl = 'MiniStatuslineFilename', strings = { get_file_icon() .. get_filename() .. get_modified_indicator() } },
+            { hl = 'Normal', strings = { '  ' .. get_file_icon() .. get_filename() .. get_modified_indicator() } },
             '%=', -- End left alignment
-            { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp } },
-            { hl = mode_hl, strings = { search, location } },
+            { hl = 'Normal', strings = { git, diagnostics } },
+            { hl = 'Normal', strings = { location .. '  ' } },
           }
         end,
       },
     }
+    
+    vim.o.statusline = "%!v:lua.MiniStatusline.active()"
     ---@diagnostic disable-next-line: duplicate-set-field
     statusline.section_location = function()
       return '%l:%L'
@@ -152,5 +144,24 @@ return { -- Collection of various small independent plugins/modulesmini
         animation = require('mini.indentscope').gen_animation.none(),
       },
     }
+
+    -- Tabline that shows buffers as tabs
+    -- require('mini.tabline').setup {
+    --   -- Whether to show file icons (requires 'nvim-web-devicons')
+    --   show_icons = vim.g.have_nerd_font,
+    --   -- Function which formats the tab label
+    --   -- Arguments: `buf_id`, `label`
+    --   format = nil,
+    --   -- Whether to set Vim's settings for tabline (make 'tabline' and
+    --   -- 'showtabline' to be handled by this module). Set to `false` if you want
+    --   -- to control this manually.
+    --   set_vim_settings = true,
+    --   -- Where to show tabpage section in case of multiple vim tabpages.
+    --   -- One of 'left', 'right', 'none'.
+    --   tabpage_section = 'right',
+    -- }
+
+    -- Buffer removal that handles edge cases properly
+    require('mini.bufremove').setup()
   end,
 }

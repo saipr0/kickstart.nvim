@@ -12,6 +12,7 @@ return { -- highlight, edit, and navigate code
       'lua',
       'luadoc',
       'query',
+      'ruby',
       'tmux',
       'vim',
       'vimdoc',
@@ -26,10 +27,10 @@ return { -- highlight, edit, and navigate code
     auto_install = true,
     highlight = {
       enable = true,
-      additional_vim_regex_highlighting = { 'ruby' },
       -- some languages depend on vim's regex highlighting system (such as ruby) for indent rules.
       --  if you are experiencing weird indenting issues, add the language to
       --  the list of additional_vim_regex_highlighting and disabled languages for indent.
+      additional_vim_regex_highlighting = { 'ruby' },
     },
     indent = {
       enable = true,

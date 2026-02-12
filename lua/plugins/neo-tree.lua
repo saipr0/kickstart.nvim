@@ -11,7 +11,7 @@ return {
   },
   lazy = false,
   keys = {
-    { '\\<leader>', ':Neotree toggle reveal position=float<CR>', desc = 'NeoTree reveal', silent = true },
+    { '<leader>\\', ':Neotree toggle reveal position=float<CR>', desc = 'NeoTree reveal', silent = true },
     { '\\e', ':Neotree toggle buffers position=right<CR>', desc = 'Toggle NeoTree buffers', silent = true },
   },
   config = function()
