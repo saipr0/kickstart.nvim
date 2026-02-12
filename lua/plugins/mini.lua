@@ -168,12 +168,36 @@ return { -- Collection of various small independent plugins/modulesmini
     -- mini.pick — fuzzy finder (replaces fzf-lua)
     -- =============================================
     local pick = require 'mini.pick'
+
+    -- Custom match function: spaces act as AND filters (order-independent)
+    -- Typing "show track" matches the same as "track show"
+    -- Each space-separated word is fuzzy matched independently
+    local function match_unordered(stritems, inds, query)
+      -- Split query on spaces into separate words
+      local words = {}
+      for word in query:gmatch '%S+' do
+        table.insert(words, word)
+      end
+      if #words == 0 then return inds end
+
+      -- For each word, get matching indices using default fuzzy
+      local result_inds = inds
+      for _, word in ipairs(words) do
+        result_inds = pick.default_match(stritems, result_inds, word)
+        if #result_inds == 0 then return {} end
+      end
+      return result_inds
+    end
+
     pick.setup {
       mappings = {
         choose_marked = '<C-q>', -- Send marked items to quickfix (like ctrl-q in fzf-lua)
         mark = '<Tab>',
         mark_all = '<C-a>',
         toggle_preview = '<C-p>',
+      },
+      source = {
+        match = match_unordered,
       },
       options = {
         use_cache = true,
@@ -193,6 +217,8 @@ return { -- Collection of various small independent plugins/modulesmini
     require('mini.extra').setup()
 
     -- Helper function to get the monorepo root if we're in one
+    -- You open neovim from fulcrum/, this bumps search up to tagntrac-infra/
+    -- so you can find files across all engines
     local function get_search_root()
       local cwd = vim.fn.getcwd()
       if cwd:match '/tagntrac%-infra/fulcrum' then
