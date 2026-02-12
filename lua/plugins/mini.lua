@@ -172,18 +172,34 @@ return { -- Collection of various small independent plugins/modulesmini
     -- Custom match function: spaces act as AND filters (order-independent)
     -- Typing "show track" matches the same as "track show"
     -- Each space-separated word is fuzzy matched independently
+    -- NOTE: query is a table of single-character strings, e.g. {'s','h','o','w',' ','t','r','a','c','k'}
     local function match_unordered(stritems, inds, query)
-      -- Split query on spaces into separate words
+      -- Split query characters into groups separated by spaces
       local words = {}
-      for word in query:gmatch '%S+' do
-        table.insert(words, word)
+      local current_word = {}
+      for _, char in ipairs(query) do
+        if char == ' ' then
+          if #current_word > 0 then
+            table.insert(words, current_word)
+            current_word = {}
+          end
+        else
+          table.insert(current_word, char)
+        end
       end
-      if #words == 0 then return inds end
+      if #current_word > 0 then
+        table.insert(words, current_word)
+      end
 
-      -- For each word, get matching indices using default fuzzy
+      -- If no spaces, fall back to default matching (single word = normal fuzzy)
+      if #words <= 1 then
+        return pick.default_match(stritems, inds, query, { sync = true })
+      end
+
+      -- For each word group, narrow down indices using default fuzzy match
       local result_inds = inds
-      for _, word in ipairs(words) do
-        result_inds = pick.default_match(stritems, result_inds, word)
+      for _, word_chars in ipairs(words) do
+        result_inds = pick.default_match(stritems, result_inds, word_chars, { sync = true })
         if #result_inds == 0 then return {} end
       end
       return result_inds
