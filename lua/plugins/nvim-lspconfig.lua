@@ -76,49 +76,33 @@ return {
         -- or a suggestion from your LSP for this to activate.
         map('gra', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
 
-        -- Get fzf-lua safely
-        local fzf_ok, fzf = pcall(require, 'fzf-lua')
-        if fzf_ok then
-          -- Helper to get monorepo root for path formatting
-          local function get_monorepo_root()
-            local cwd = vim.fn.getcwd()
-            if cwd:match('/tagntrac%-infra/fulcrum') then
-              return cwd:match('(.*/tagntrac%-infra)')
-            end
-            return cwd
-          end
-
+        -- LSP navigation via mini.pick
+        local extra_ok, extra = pcall(require, 'mini.extra')
+        if extra_ok then
           -- Find references for the word under your cursor.
-          map('grr', function() fzf.lsp_references({ cwd = get_monorepo_root() }) end, '[G]oto [R]eferences')
+          map('grr', function() extra.pickers.lsp { scope = 'references' } end, '[G]oto [R]eferences')
 
           -- Jump to the implementation of the word under your cursor.
-          --  Useful when your language has ways of declaring types without an actual implementation.
-          map('gri', function() fzf.lsp_implementations({ cwd = get_monorepo_root() }) end, '[G]oto [I]mplementation')
+          map('gri', function() extra.pickers.lsp { scope = 'implementation' } end, '[G]oto [I]mplementation')
 
           -- Jump to the definition of the word under your cursor.
-          --  This is where a variable was first declared, or where a function is defined, etc.
           --  To jump back, press <C-t>.
-          map('grd', function() fzf.lsp_definitions({ cwd = get_monorepo_root() }) end, '[G]oto [D]efinition')
+          map('grd', function() extra.pickers.lsp { scope = 'definition' } end, '[G]oto [D]efinition')
 
           -- Fuzzy find all the symbols in your current document.
-          --  Symbols are things like variables, functions, types, etc.
-          map('gO', fzf.lsp_document_symbols, 'Open Document Symbols')
+          map('gO', function() extra.pickers.lsp { scope = 'document_symbol' } end, 'Open Document Symbols')
 
           -- Fuzzy find all the symbols in your current workspace.
-          --  Similar to document symbols, except searches over your entire project.
-          map('gW', fzf.lsp_workspace_symbols, 'Open Workspace Symbols')
+          map('gW', function() extra.pickers.lsp { scope = 'workspace_symbol' } end, 'Open Workspace Symbols')
 
           -- Jump to the type of the word under your cursor.
-          --  Useful when you're not sure what type a variable is and you want to see
-          --  the definition of its *type*, not where it was *defined*.
-          map('grt', fzf.lsp_typedefs, '[G]oto [T]ype Definition')
+          map('grt', function() extra.pickers.lsp { scope = 'type_definition' } end, '[G]oto [T]ype Definition')
         else
-          -- Fallback to built-in LSP functions if fzf-lua is not available
+          -- Fallback to built-in LSP functions
           map('grr', vim.lsp.buf.references, '[G]oto [R]eferences')
-          map('gri', vim.lsp.buf.implementation, '[G]oto [I]mplementation')  
+          map('gri', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
           map('grd', vim.lsp.buf.definition, '[G]oto [D]efinition')
           map('grt', vim.lsp.buf.type_definition, '[G]oto [T]ype Definition')
-          -- Note: Document/workspace symbols don't have simple built-in alternatives
         end
 
         -- WARN: This is not Goto Definition, this is Goto Declaration.

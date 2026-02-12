@@ -163,5 +163,131 @@ return { -- Collection of various small independent plugins/modulesmini
 
     -- Buffer removal that handles edge cases properly
     require('mini.bufremove').setup()
+
+    -- =============================================
+    -- mini.pick — fuzzy finder (replaces fzf-lua)
+    -- =============================================
+    local pick = require 'mini.pick'
+    pick.setup {
+      mappings = {
+        choose_marked = '<C-q>', -- Send marked items to quickfix (like ctrl-q in fzf-lua)
+        mark = '<Tab>',
+        mark_all = '<C-a>',
+        toggle_preview = '<C-p>',
+      },
+      options = {
+        use_cache = true,
+      },
+      window = {
+        prompt_prefix = '❯ ',
+        config = {
+          border = 'rounded',
+        },
+      },
+    }
+
+    -- Make mini.pick the default vim.ui.select
+    vim.ui.select = pick.ui_select
+
+    -- mini.extra — additional pickers (keymaps, marks, diagnostics, colorschemes, etc.)
+    require('mini.extra').setup()
+
+    -- Helper function to get the monorepo root if we're in one
+    local function get_search_root()
+      local cwd = vim.fn.getcwd()
+      if cwd:match '/tagntrac%-infra/fulcrum' then
+        return cwd:match '(.*/tagntrac%-infra)'
+      end
+      return cwd
+    end
+
+    -- ── Search keymaps ─────────────────────────────────────
+    vim.keymap.set('n', '<leader>sh', function() MiniExtra.pickers.hl_groups() end, { desc = '[S]earch [H]ighlight groups' })
+    vim.keymap.set('n', '<leader>sc', function() MiniExtra.pickers.colorschemes() end, { desc = '[S]earch [C]olorscheme' })
+    vim.keymap.set('n', '<leader>sk', function() MiniExtra.pickers.keymaps() end, { desc = '[S]earch [K]eymaps' })
+    vim.keymap.set('n', '<leader>sf', function()
+      pick.builtin.files({}, { source = { cwd = get_search_root() } })
+    end, { desc = '[S]earch [F]iles' })
+    vim.keymap.set('n', '<leader>ss', function()
+      local items = {
+        'Files', 'Grep live', 'Buffers', 'Help', 'Keymaps', 'Colorschemes',
+        'Diagnostics', 'Marks', 'Oldfiles', 'Resume', 'LSP references',
+        'LSP definitions', 'LSP symbols', 'LSP workspace symbols',
+        'Git commits', 'Git branches', 'Registers', 'Commands',
+        'Explorer', 'Treesitter', 'Quickfix', 'Jumps',
+      }
+      vim.ui.select(items, { prompt = 'Pick a picker:' }, function(choice)
+        if not choice then return end
+        local map = {
+          ['Files'] = function() pick.builtin.files({}, { source = { cwd = get_search_root() } }) end,
+          ['Grep live'] = function() pick.builtin.grep_live({}, { source = { cwd = get_search_root() } }) end,
+          ['Buffers'] = pick.builtin.buffers,
+          ['Help'] = pick.builtin.help,
+          ['Keymaps'] = MiniExtra.pickers.keymaps,
+          ['Colorschemes'] = MiniExtra.pickers.colorschemes,
+          ['Diagnostics'] = MiniExtra.pickers.diagnostic,
+          ['Marks'] = MiniExtra.pickers.marks,
+          ['Oldfiles'] = MiniExtra.pickers.oldfiles,
+          ['Resume'] = pick.builtin.resume,
+          ['LSP references'] = function() MiniExtra.pickers.lsp { scope = 'references' } end,
+          ['LSP definitions'] = function() MiniExtra.pickers.lsp { scope = 'definition' } end,
+          ['LSP symbols'] = function() MiniExtra.pickers.lsp { scope = 'document_symbol' } end,
+          ['LSP workspace symbols'] = function() MiniExtra.pickers.lsp { scope = 'workspace_symbol' } end,
+          ['Git commits'] = MiniExtra.pickers.git_commits,
+          ['Git branches'] = MiniExtra.pickers.git_branches,
+          ['Registers'] = MiniExtra.pickers.registers,
+          ['Commands'] = MiniExtra.pickers.commands,
+          ['Explorer'] = MiniExtra.pickers.explorer,
+          ['Treesitter'] = MiniExtra.pickers.treesitter,
+          ['Quickfix'] = function() MiniExtra.pickers.list { scope = 'quickfix' } end,
+          ['Jumps'] = function() MiniExtra.pickers.list { scope = 'jump' } end,
+        }
+        if map[choice] then map[choice]() end
+      end)
+    end, { desc = '[S]earch [S]elect picker' })
+    vim.keymap.set('n', '<leader>sw', function()
+      pick.builtin.grep({ pattern = vim.fn.expand '<cword>' }, { source = { cwd = get_search_root() } })
+    end, { desc = '[S]earch current [W]ord' })
+    vim.keymap.set('n', '<leader>sg', function()
+      pick.builtin.grep_live({}, { source = { cwd = get_search_root() } })
+    end, { desc = '[S]earch by [G]rep' })
+    vim.keymap.set('n', '<leader>sd', function()
+      MiniExtra.pickers.diagnostic { scope = 'current' }
+    end, { desc = '[S]earch [D]iagnostics' })
+    vim.keymap.set('n', '<leader>sr', pick.builtin.resume, { desc = '[S]earch [R]esume' })
+    vim.keymap.set('n', '<leader>s.', function() MiniExtra.pickers.oldfiles() end, { desc = '[S]earch Recent Files ("." for repeat)' })
+    vim.keymap.set('n', '<leader><leader>', pick.builtin.buffers, { desc = '[ ] Find existing buffers' })
+    vim.keymap.set('n', '<leader>/', function()
+      MiniExtra.pickers.buf_lines { scope = 'current' }
+    end, { desc = '[/] Fuzzily search in current buffer' })
+    vim.keymap.set('n', '<leader>s/', function()
+      -- Search across all open buffer lines
+      MiniExtra.pickers.buf_lines { scope = 'all' }
+    end, { desc = '[S]earch [/] in Open Files' })
+    vim.keymap.set('n', '<leader>sn', function()
+      pick.builtin.files({}, { source = { cwd = vim.fn.stdpath 'config' } })
+    end, { desc = '[S]earch [N]eovim files' })
+    vim.keymap.set('n', '<leader>st', function() MiniExtra.pickers.treesitter() end, { desc = '[S]earch [T]reesitter nodes' })
+    vim.keymap.set('n', '<leader>sm', function() MiniExtra.pickers.marks() end, { desc = '[S]earch [M]arks' })
+    vim.keymap.set('n', '<leader>sj', function() MiniExtra.pickers.list { scope = 'jump' } end, { desc = '[S]earch [J]umps' })
+    vim.keymap.set('n', '<leader>sq', function() MiniExtra.pickers.list { scope = 'quickfix' } end, { desc = '[S]earch [Q]uickfix' })
+    vim.keymap.set('n', '<leader>sH', function() pick.builtin.help() end, { desc = '[S]earch [H]elp tags' })
+
+    -- ── LSP keymaps via mini.pick ──────────────────────────
+    vim.keymap.set('n', '<leader>lr', function()
+      MiniExtra.pickers.lsp({ scope = 'references' })
+    end, { desc = '[L]SP [R]eferences' })
+    vim.keymap.set('n', '<leader>ld', function()
+      MiniExtra.pickers.lsp({ scope = 'definition' })
+    end, { desc = '[L]SP [D]efinitions' })
+    vim.keymap.set('n', '<leader>li', function()
+      MiniExtra.pickers.lsp({ scope = 'implementation' })
+    end, { desc = '[L]SP [I]mplementations' })
+    vim.keymap.set('n', '<leader>ls', function()
+      MiniExtra.pickers.lsp({ scope = 'document_symbol' })
+    end, { desc = '[L]SP Document [S]ymbols' })
+    vim.keymap.set('n', '<leader>lw', function()
+      MiniExtra.pickers.lsp({ scope = 'workspace_symbol' })
+    end, { desc = '[L]SP [W]orkspace Symbols' })
   end,
 }

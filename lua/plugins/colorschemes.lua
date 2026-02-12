@@ -28,7 +28,6 @@ return {
         filter = 'octagon',
         background_clear = {
           'toggleterm',
-          'fzf',
           'renamer',
           'notify',
         },
@@ -97,16 +96,12 @@ return {
       vim.api.nvim_set_hl(0, 'VertSplit', { bg = 'none', fg = '#666666' })
       vim.api.nvim_set_hl(0, 'WinSeparator', { bg = 'none', fg = '#666666' })
       
-      -- Clear all fzf-lua backgrounds
-      local fzf_groups = {
-        'FzfLuaNormal', 'FzfLuaBorder', 'FzfLuaPreviewNormal', 'FzfLuaPreviewBorder',
-        'FzfLuaTitle', 'FzfLuaCursor', 'FzfLuaCursorLine', 'FzfLuaSearch',
-        'FzfLuaScrollBorderEmpty', 'FzfLuaScrollBorderFull', 'FzfLuaFzfBorder',
-        'FzfLuaFzfGutter', 'FzfLuaHeaderBind', 'FzfLuaHeaderText', 'FzfLuaPathColNr',
-        'FzfLuaPathLineNr', 'FzfLuaBufName', 'FzfLuaBufNr', 'FzfLuaBufFlagCur',
-        'FzfLuaBufFlagAlt', 'FzfLuaTabTitle', 'FzfLuaTabMarker', 'FzfLuaLiveSym',
+      -- Clear mini.pick backgrounds for transparency
+      local pick_groups = {
+        'MiniPickNormal', 'MiniPickBorder', 'MiniPickPrompt',
+        'MiniPickMatchCur', 'MiniPickMatchRanges',
       }
-      for _, group in ipairs(fzf_groups) do
+      for _, group in ipairs(pick_groups) do
         vim.api.nvim_set_hl(0, group, { bg = 'none' })
       end
 
