@@ -1,6 +1,6 @@
 return { -- Autocompletion
   'saghen/blink.cmp',
-  event = 'VimEnter',
+  event = { 'InsertEnter', 'CmdlineEnter' },
   version = '1.*',
   dependencies = {
     -- Snippet Engine
@@ -69,14 +69,24 @@ return { -- Autocompletion
     },
 
     completion = {
-      -- By default, you may press `<c-space>` to show the documentation.
-      -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      accept = {
+        auto_brackets = { enabled = true },
+      },
+      menu = {
+        draw = {
+          treesitter = { 'lsp' },
+        },
+      },
+      documentation = { auto_show = true, auto_show_delay_ms = 200 },
     },
 
     sources = {
-      default = { 'lsp', 'path', 'snippets', 'lazydev' },
+      default = { 'lsp', 'path', 'snippets', 'buffer' },
+      per_filetype = {
+        lua = { inherit_defaults = true, 'lazydev' },
+      },
       providers = {
+        buffer = { score_offset = -3 },
         lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
       },
     },
@@ -94,5 +104,21 @@ return { -- Autocompletion
 
     -- Shows a signature help window while you type arguments for a function
     signature = { enabled = true },
+
+    cmdline = {
+      enabled = true,
+      keymap = {
+        preset = 'cmdline',
+        ['<Right>'] = false,
+        ['<Left>'] = false,
+      },
+      completion = {
+        list = { selection = { preselect = false } },
+        menu = {
+          auto_show = function() return vim.fn.getcmdtype() == ':' end,
+        },
+        ghost_text = { enabled = true },
+      },
+    },
   },
 }
